@@ -207,6 +207,123 @@
     }
 
     .btn:hover { background: rgba(255, 255, 255, .26); }
+    :root { --shadow: 0 18px 60px rgba(0,0,0,.18); }
+
+    body{
+      margin:0; min-height:100vh; display:grid; place-items:center;
+      background:#8ea081; /* soft sage */
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+    }
+
+    .wrap{ width:min(560px, 92vw); padding:28px 0; }
+
+    .hint{
+      text-align:center; color:rgba(255,255,255,.92);
+      margin:0 0 14px; font-size:14px; letter-spacing:.2px;
+    }
+
+    /* Envelope scene */
+    .scene{
+      position:relative;
+      width:100%;
+      aspect-ratio: 1 / 1;
+      border-radius:18px;
+      overflow:hidden;
+      box-shadow: var(--shadow);
+      background:#90a285;
+    }
+
+    /* Your envelope image as the background */
+    .bg{
+      position:absolute; inset:0;
+      background: url("envelope-closed.png") center/cover no-repeat;
+      transform: scale(1.01);
+    }
+
+    /* Clickable seal hotspot */
+    .seal{
+      position:absolute;
+      /* Adjust these to match where your monogram seal sits */
+      left:50%;
+      top:40%;
+      width:110px; height:110px;
+      transform: translate(-50%,-50%);
+      border-radius:999px;
+      cursor:pointer;
+      outline:none;
+    }
+
+    /* Optional subtle pulse ring to guide clicks */
+    .seal::after{
+      content:"";
+      position:absolute; inset:-10px;
+      border-radius:999px;
+      border:2px solid rgba(255,255,255,.55);
+      opacity:.0;
+      animation: pulse 2.2s infinite;
+    }
+    @keyframes pulse{
+      0%{ transform:scale(.92); opacity:.0; }
+      35%{ opacity:.55; }
+      100%{ transform:scale(1.18); opacity:.0; }
+    }
+
+    /* Flap overlay (simple animated “open” panel) */
+    .flap{
+      position:absolute;
+      left:0; top:0; right:0;
+      height:48%;
+      transform-origin: top center;
+      transform: rotateX(0deg);
+      transition: transform 900ms cubic-bezier(.2,.9,.2,1);
+      background: rgba(255,255,255,.0);
+      /* if you have a separate flap image, use it:
+         background: url("flap.png") center/cover no-repeat; */
+      pointer-events:none;
+    }
+
+    /* Card reveal */
+    .card{
+      position:absolute;
+      left:50%;
+      top:54%;
+      width:78%;
+      transform: translate(-50%, 30%);
+      opacity:0;
+      transition: transform 900ms cubic-bezier(.2,.9,.2,1), opacity 600ms ease;
+      background: rgba(255,255,255,.92);
+      border-radius:14px;
+      padding:18px 16px;
+      text-align:center;
+      box-shadow: 0 14px 40px rgba(0,0,0,.16);
+    }
+    .card h1{
+      margin:0 0 6px;
+      font-size:22px;
+      letter-spacing:.2px;
+      font-weight:650;
+      color:#3b3b3b;
+    }
+    .card p{ margin:6px 0; color:#4a4a4a; font-size:14px; }
+    .small{ font-size:12px; opacity:.85; margin-top:10px; }
+
+    /* Open state */
+    .open .flap{ transform: rotateX(70deg); }
+    .open .card{ transform: translate(-50%, -2%); opacity:1; }
+    .open .seal{ pointer-events:none; }
+
+    .btnrow{ display:flex; gap:10px; justify-content:center; margin-top:14px; flex-wrap:wrap; }
+    .btn{
+      border:1px solid rgba(255,255,255,.6);
+      background: rgba(255,255,255,.18);
+      color: rgba(255,255,255,.95);
+      padding:10px 14px;
+      border-radius:999px;
+      font-size:13px;
+      cursor:pointer;
+      backdrop-filter: blur(6px);
+    }
+    .btn:hover{ background: rgba(255,255,255,.26); }
   </style>
 </head>
 
@@ -222,6 +339,17 @@
       <div class="flap" aria-hidden="true"></div>
 
       <div class="card" role="dialog" aria-live="polite" aria-label="Save the date details">
+    <p class="hint">Press the monogram seal to open ✨</p>
+
+    <div class="scene" id="scene" aria-label="Save the date envelope">
+      <div class="bg" aria-hidden="true"></div>
+
+      <!-- If you want the seal graphic separate, set background-image here -->
+      <button class="seal" id="seal" aria-label="Open envelope"></button>
+
+      <div class="flap" aria-hidden="true"></div>
+
+      <div class="card" role="dialog" aria-live="polite">
         <h1>Save the Date</h1>
         <p><strong>Jenny &amp; Johnny Sabalsa</strong></p>
         <p>Wedding Ceremony · Miami, Florida</p>
@@ -233,6 +361,8 @@
     <div class="btnrow">
       <button class="btn" id="replay" type="button">Replay</button>
       <button class="btn" id="copylink" type="button">Copy Link</button>
+      <button class="btn" id="replay">Replay</button>
+      <button class="btn" id="copylink">Copy Link</button>
     </div>
   </div>
 
@@ -249,6 +379,15 @@
     replay.addEventListener("click", () => {
       scene.classList.remove("open");
       // Force reflow so transitions restart cleanly.
+    const seal  = document.getElementById("seal");
+    const replay = document.getElementById("replay");
+    const copylink = document.getElementById("copylink");
+
+    seal.addEventListener("click", () => scene.classList.add("open"));
+
+    replay.addEventListener("click", () => {
+      scene.classList.remove("open");
+      // small delay so transitions restart clean
       void scene.offsetWidth;
     });
 
@@ -259,6 +398,7 @@
         setTimeout(() => {
           copylink.textContent = "Copy Link";
         }, 1400);
+        setTimeout(() => copylink.textContent = "Copy Link", 1400);
       } catch {
         alert("Copy failed — just select the URL in your browser.");
       }
